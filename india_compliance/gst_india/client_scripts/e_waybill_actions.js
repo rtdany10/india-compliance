@@ -80,6 +80,12 @@ function setup_e_waybill_actions(doctype) {
                     () => show_update_transporter_dialog(frm),
                     "e-Waybill"
                 );
+
+                frm.add_custom_button(
+                    __("Extend Validity"),
+                    () => show_extend_validity_dialog(frm),
+                    "e-Waybill"
+                );
             }
 
             if (
@@ -590,6 +596,129 @@ function show_update_transporter_dialog(frm) {
                 },
                 callback: () => frm.refresh(),
             });
+            d.hide();
+        },
+    });
+
+    d.show();
+}
+
+function show_extend_validity_dialog(frm) {
+    const d = new frappe.ui.Dialog({
+        title: __("Extend Validity"),
+        fields: [
+            {
+                label: "e-Waybill",
+                fieldname: "ewaybill",
+                fieldtype: "Data",
+                read_only: 1,
+                default: frm.doc.ewaybill,
+            },
+            {
+                label: "Vehicle No",
+                fieldname: "vehicle_no",
+                fieldtype: "Data",
+                default: frm.doc.vehicle_no,
+                mandatory_depends_on:
+                    "eval: ['Road', 'Ship'].includes(doc.mode_of_transport)",
+            },
+            {
+                label: "Transport Receipt No",
+                fieldname: "lr_no",
+                fieldtype: "Data",
+                default: frm.doc.lr_no,
+                mandatory_depends_on:
+                    "eval: ['Rail', 'Air', 'Ship'].includes(doc.mode_of_transport)",
+            },
+            {
+                label: "From Place",
+                fieldname: "from_place",
+                fieldtype: "Data",
+                reqd: 1,
+            },
+            {
+                label: "From State",
+                fieldname: "from_state",
+                fieldtype: "Autocomplete",
+                options: frappe.boot.india_state_options,
+                reqd: 1,
+            },
+            {
+                fieldtype: "Column Break",
+            },
+            {
+                label: "Mode Of Transport",
+                fieldname: "mode_of_transport",
+                fieldtype: "Select",
+                options: `\nRoad\nAir\nRail\nShip`,
+                default: frm.doc.mode_of_transport,
+                mandatory_depends_on: "eval: doc.lr_no",
+                onchange: () => update_vehicle_type(d),
+            },
+            {
+                label: "Transport Receipt Date",
+                fieldname: "lr_date",
+                fieldtype: "Date",
+                default: frm.doc.lr_date,
+                mandatory_depends_on: "eval:doc.lr_no",
+            },
+            {
+                label: "Remaining Distance",
+                fieldname: "remaining_distance",
+                fieldtype: "Float",
+                reqd: 1
+            },
+            {
+                label: "From Pincode",
+                fieldname: "from_pincode",
+                fieldtype: "Data",
+                reqd: 1,
+            },
+            {
+                fieldname: "reason",
+                label: "Reason",
+                fieldtype: "Select",
+                options: [
+                    "Due to Break Down",
+                    "Due to Trans Shipment",
+                    "First Time",
+                    "Others",
+                ],
+                reqd: 1,
+            },
+            {
+                label: "Update e-Waybill Print/Data",
+                fieldname: "update_e_waybill_data",
+                fieldtype: "Check",
+                default: gst_settings.fetch_e_waybill_data,
+            },
+            {
+                fieldtype: "Section Break",
+            },
+            {
+                label: "Address Line 1",
+                fieldname: "address_line1",
+                fieldtype: "Data",
+                reqd: 1,
+            },
+            {
+                fieldtype: "Column Break",
+            },
+            {
+                label: "Address Line 2",
+                fieldname: "address_line2",
+                fieldtype: "Data",
+                reqd: 1,
+            },
+            {
+                label: "Address Line 3",
+                fieldname: "address_line3",
+                fieldtype: "Data",
+                reqd: 1,
+            },
+        ],
+        primary_action_label: __("Update"),
+        primary_action(values) {
             d.hide();
         },
     });
